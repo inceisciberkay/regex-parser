@@ -1,26 +1,35 @@
-use regex_parser::Matcher;
+mod matcher;
+mod pattern;
+
+use matcher::*;
+use pattern::*;
+
 use std::env;
 use std::io;
 use std::process;
 
-fn usage() -> &'static str {
-    "Usage: echo <input_text> | regex_parser -E <pattern>"
+fn match_pattern(input: &str, pattern: &str) -> bool {
+    let matcher = Matcher::new();
+    matcher.match_pattern(input, pattern)
 }
+
+// Usage: echo <input_text> | ./regex-parser -E <pattern>
 fn main() {
     if env::args().nth(1).unwrap() != "-E" {
-        eprintln!("{}", usage());
+        println!("Expected first argument to be '-E'");
         process::exit(1);
     }
 
-    let pattern = env::args().nth(2).expect(usage());
-    let mut input = String::new();
+    let pattern = env::args().nth(2).unwrap();
+    let mut input_line = String::new();
 
-    io::stdin().read_line(&mut input).unwrap();
+    io::stdin().read_line(&mut input_line).unwrap();
 
-    let mut matcher = Matcher::new(&input);
-
-    if !matcher.match_pattern(&pattern) {
-        println!("Not matched");
+    if match_pattern(&input_line, &pattern) {
+        println!("Match successful");
+        process::exit(0)
+    } else {
+        println!("Match failed");
         process::exit(1)
     }
 }
